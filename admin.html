@@ -6,7 +6,7 @@
     <title>Admin Dashboard</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }
-        .container { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-width: 1000px; margin: auto; }
+        .container { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-width: 100%; margin: auto; }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #003366; padding-bottom: 10px; margin-bottom: 20px; }
         .header h2 { margin: 0; color: #003366; }
         .btn-group button { padding: 10px 15px; margin-left: 5px; border: none; border-radius: 4px; color: white; cursor: pointer; font-weight: bold; }
@@ -15,10 +15,13 @@
         .btn-pdf { background-color: #dc3545; }
         .btn-pdf:hover { background-color: #c82333; }
         
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        /* CSS Untuk Jadual Boleh Skrol */
+        .table-wrapper { overflow-x: auto; border: 1px solid #ddd; }
+        table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 13px; }
+        th, td { border: 1px solid #ddd; padding: 10px 15px; text-align: left; }
         th { background-color: #003366; color: white; }
         tr:nth-child(even) { background-color: #f9f9f9; }
+        tr:hover { background-color: #e6f0fc; }
     </style>
     
     <!-- Script untuk Export Excel & PDF -->
@@ -29,26 +32,39 @@
 
 <div class="container">
     <div class="header">
-        <h2>Admin Dashboard - Rekod Permohonan</h2>
+        <h2>Admin Dashboard - Rekod Permohonan Penuh</h2>
         <div class="btn-group">
             <button class="btn-excel" onclick="exportExcel()">📊 Export Excel</button>
             <button class="btn-pdf" onclick="exportPDF()">📄 Export PDF</button>
         </div>
     </div>
 
-    <!-- Kotak Jadual untuk PDF -->
-    <div id="table-container">
+    <!-- Kotak Jadual -->
+    <div class="table-wrapper" id="table-container">
         <table id="dataTable">
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Nama Pemohon</th>
-                    <th>No. Telefon</th>
-                    <th>Tarikh Borang Dihantar</th>
+                    <th>Tarikh Submit</th>
+                    <th>Nama Penuh</th>
+                    <th>No. K/P Baru</th>
+                    <th>Jantina</th>
+                    <th>Status</th>
+                    <th>Bangsa</th>
+                    <th>Agama</th>
+                    <th>Warganegara</th>
+                    <th>Pekerjaan</th>
+                    <th>Alamat Penuh</th>
+                    <th>Poskod</th>
+                    <th>Bandar</th>
+                    <th>Negeri</th>
+                    <th>No. Telefon (Bimbit)</th>
+                    <th>E-mel</th>
+                    <th>Pendapatan (RM)</th>
                 </tr>
             </thead>
             <tbody id="tableBody">
-                <tr><td colspan="4" style="text-align:center;">Memuat turun data dari Cloudflare...</td></tr>
+                <tr><td colspan="17" style="text-align:center;">Memuat turun data dari Cloudflare...</td></tr>
             </tbody>
         </table>
     </div>
@@ -60,48 +76,75 @@
         .then(response => response.json())
         .then(data => {
             const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = ''; // Kosongkan mesej "Memuat turun..."
+            tbody.innerHTML = ''; 
             
             if(data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Belum ada sebarang rekod permohonan.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="17" style="text-align:center;">Belum ada sebarang rekod permohonan.</td></tr>';
                 return;
             }
 
-            // Masukkan data satu persatu ke dalam jadual
+            // Proses setiap data yang masuk
             data.forEach(row => {
-                const tarikh = new Date(row.submitted_at).toLocaleString('ms-MY'); // Format tarikh Malaysia
+                const tarikh = new Date(row.submitted_at).toLocaleString('ms-MY'); 
+
+                // "Buka Laci" raw_data (Tukar JSON kepada objek Javascript)
+                let details = {};
+                try {
+                    details = JSON.parse(row.raw_data);
+                } catch(e) {}
+
+                // Susun dan cantumkan data supaya nampak kemas
+                const namaPenuh = (details.title ? details.title + ' ' : '') + (details.cert_holder_name || row.name || '-');
+                const icPenuh = (details.ic_1 && details.ic_2 && details.ic_3) ? `${details.ic_1}-${details.ic_2}-${details.ic_3}` : (details.old_ic || '-');
+                const alamatPenuh = [details.address_1, details.address_2, details.address_3].filter(Boolean).join(', ');
+                const pekerjaan = details.occupation === 'Others (Sila Taip)' ? details.occupation_other : details.occupation;
+
+                // Masukkan ke dalam barisan jadual
                 tbody.innerHTML += `
                     <tr>
                         <td>${row.id}</td>
-                        <td>${row.name}</td>
-                        <td>${row.phone}</td>
                         <td>${tarikh}</td>
+                        <td style="font-weight: bold;">${namaPenuh.toUpperCase()}</td>
+                        <td>${icPenuh}</td>
+                        <td>${details.gender || '-'}</td>
+                        <td>${details.marital_status || '-'}</td>
+                        <td>${details.race || '-'}</td>
+                        <td>${details.religion || '-'}</td>
+                        <td>${details.nationality || '-'}</td>
+                        <td>${pekerjaan || '-'}</td>
+                        <td>${alamatPenuh.toUpperCase()}</td>
+                        <td>${details.postcode || '-'}</td>
+                        <td>${details.town ? details.town.toUpperCase() : '-'}</td>
+                        <td>${details.state || '-'}</td>
+                        <td>${details.phone_mobile || row.phone || '-'}</td>
+                        <td>${details.email || '-'}</td>
+                        <td>${details.income || '-'}</td>
                     </tr>
                 `;
             });
         })
         .catch(error => {
-            document.getElementById('tableBody').innerHTML = `<tr><td colspan="4" style="color:red;">Ralat: ${error.message}</td></tr>`;
+            document.getElementById('tableBody').innerHTML = `<tr><td colspan="17" style="color:red;">Ralat: ${error.message}</td></tr>`;
         });
 
     // --- FUNGSI EXPORT EXCEL ---
     function exportExcel() {
         let table = document.getElementById("dataTable");
         let wb = XLSX.utils.table_to_book(table, {sheet: "Data Permohonan"});
-        XLSX.writeFile(wb, "Senarai_Permohonan.xlsx");
+        XLSX.writeFile(wb, "Senarai_Permohonan_Lengkap.xlsx");
     }
 
     // --- FUNGSI EXPORT PDF ---
     function exportPDF() {
         let element = document.getElementById("table-container");
         let opt = {
-            margin:       0.5,
-            filename:     'Senarai_Permohonan.pdf',
+            margin:       0.2,
+            filename:     'Senarai_Permohonan_Lengkap.pdf',
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2 },
-            jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+            // Gunakan saiz kertas A3 (Melintang) sebab lajur sangat panjang
+            jsPDF:        { unit: 'in', format: 'a3', orientation: 'landscape' } 
         };
-        // Mula proses convert
         html2pdf().set(opt).from(element).save();
     }
 </script>
