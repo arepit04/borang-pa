@@ -30,7 +30,7 @@ export default {
             
             // 💡 SILA TUKAR USERNAME DAN PASSWORD ANDA DI SINI:
             const USERNAME = "admin";
-            const PASSWORD = "PasswordRahsia123!"; 
+            const PASSWORD = "Password123!"; 
 
             const authHeader = request.headers.get("Authorization");
             const expectedAuth = "Basic " + btoa(`${USERNAME}:${PASSWORD}`);
