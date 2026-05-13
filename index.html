@@ -391,24 +391,22 @@
         });
 
         // ==========================================
-        // 5. MENGHANTAR DATA KE CLOUDFLARE BACKEND
+        // 5. MENGHANTAR DATA & NOTIFIKASI EMEL
         // ==========================================
         const form = document.getElementById('certificateForm');
         const submitBtn = form.querySelector('button[type="submit"]');
 
         form.addEventListener('submit', async function(e) {
-            e.preventDefault(); // Halang borang dari refresh
+            e.preventDefault(); 
 
-            // Tukar butang supaya pengguna tahu ia sedang berproses
             submitBtn.textContent = 'Menghantar Data...';
             submitBtn.disabled = true;
 
-            // Kumpul semua data dari borang
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
 
             try {
-                // Menghantar ke fail submit.js
+                // 1. Simpan ke Database (Cloudflare)
                 const response = await fetch('./api/submit', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -416,26 +414,36 @@
                 });
 
                 if (response.ok) {
+                    // 2. Jika Database berjaya, hantar Emel guna EmailJS
+                    try {
+                        await emailjs.send(
+                            "service_btx58j4",      // Service ID
+                            "template_5p4r0yp",     // Template ID
+                            {
+                                nama_pemohon: data.cert_holder_name || "Tiada Nama",
+                                no_telefon: data.phone_mobile || "Tiada Nombor",
+                                negeri: data.state || "Tiada Negeri"
+                            }
+                        );
+                        console.log("Emel notifikasi berjaya dihantar!");
+                    } catch (emailErr) {
+                        console.error("Gagal hantar emel:", emailErr);
+                    }
+
+                    // 3. Papar mesej berjaya kepada pengguna
                     alert("Berjaya! Data telah direkodkan.");
                     form.reset(); 
-                    submitBtn.textContent = 'Submit Data';
-                    submitBtn.disabled = false;
                 } else {
                     const isiRalat = await response.text();
                     alert("RALAT SEBENAR: " + isiRalat);
-                    submitBtn.textContent = 'Submit Data';
-                    submitBtn.disabled = false;
                 }
             } catch (error) {
-                // PENTING: Tangkap ralat jika gagal berhubung dengan server
                 alert("RALAT SEBENAR (SISTEM): " + error.message);
+            } finally {
                 submitBtn.textContent = 'Submit Data';
                 submitBtn.disabled = false;
             }
-        });
-
-    });
-</script>
+        });</script>
 
 </body>
 </html>
