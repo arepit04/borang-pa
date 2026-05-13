@@ -9,19 +9,63 @@
         .container { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-width: 100%; margin: auto; }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #003366; padding-bottom: 10px; margin-bottom: 20px; }
         .header h2 { margin: 0; color: #003366; }
-        .btn-group button { padding: 10px 15px; margin-left: 5px; border: none; border-radius: 4px; color: white; cursor: pointer; font-weight: bold; }
-        .btn-excel { background-color: #28a745; }
-        .btn-excel:hover { background-color: #218838; }
-        .btn-pdf { background-color: #dc3545; }
-        .btn-pdf:hover { background-color: #c82333; }
         
-        /* CSS Untuk Jadual Boleh Skrol */
+        /* Butang Atas */
+        .btn-group button { padding: 10px 15px; margin-left: 5px; border: none; border-radius: 4px; color: white; cursor: pointer; font-weight: bold; }
+        .btn-excel { background-color: #28a745; } .btn-excel:hover { background-color: #218838; }
+        .btn-pdf { background-color: #dc3545; } .btn-pdf:hover { background-color: #c82333; }
+        
+        /* Jadual Utama */
         .table-wrapper { overflow-x: auto; border: 1px solid #ddd; }
         table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 13px; }
         th, td { border: 1px solid #ddd; padding: 10px 15px; text-align: left; }
         th { background-color: #003366; color: white; }
         tr:nth-child(even) { background-color: #f9f9f9; }
         tr:hover { background-color: #e6f0fc; }
+        
+        /* Butang Tindakan */
+        .btn-view { background-color: #17a2b8; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-weight: bold; }
+        .btn-view:hover { background-color: #117a8b; }
+
+        /* =========================================
+           CSS UNTUK POP-UP "VIEW AS FORM" (GOOGLE FORMS STYLE)
+           ========================================= */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 1000; overflow-y: auto;
+        }
+        .modal-content {
+            background-color: #e8f0e5; /* Latar belakang hijau pudar macam gambar */
+            max-width: 700px; margin: 40px auto; padding: 20px; border-radius: 8px;
+            position: relative; box-sizing: border-box; font-family: Arial, sans-serif;
+        }
+        .close-btn {
+            position: absolute; top: -30px; right: 0; font-size: 30px; color: white; cursor: pointer;
+        }
+        
+        /* Tajuk Borang (Atas sekali) */
+        .form-title-card {
+            background: #fff; padding: 25px 20px; border-radius: 8px; margin-bottom: 15px;
+            border-top: 10px solid #003366; box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+        .form-title-card h2 { margin: 0 0 15px 0; font-size: 26px; color: #222; }
+        .form-title-card hr { border: 0; border-top: 1px solid #eee; margin-bottom: 15px; }
+        .req-text { color: red; font-size: 13px; }
+
+        /* Kad-Kad Jawapan (Bawah) */
+        .answer-card {
+            background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 15px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+        .answer-label { font-size: 15px; color: #222; margin-bottom: 15px; }
+        .answer-req { color: red; }
+        .answer-text {
+            font-size: 14px; color: #000; border-bottom: 1px dotted #999; 
+            padding-bottom: 5px; width: 80%; min-height: 20px; text-transform: uppercase;
+        }
+        
+        /* Footer (Tarikh Submit) */
+        .modal-footer { text-align: right; font-size: 12px; font-style: italic; color: #555; margin-top: 10px; }
     </style>
     
     <!-- Script untuk Export Excel & PDF -->
@@ -44,93 +88,182 @@
         <table id="dataTable">
             <thead>
                 <tr>
+                    <th>Tindakan</th> <!-- Lajur Baru -->
                     <th>ID</th>
                     <th>Tarikh Submit</th>
                     <th>Nama Penuh</th>
                     <th>No. K/P Baru</th>
-                    <th>Jantina</th>
-                    <th>Status</th>
-                    <th>Bangsa</th>
-                    <th>Agama</th>
-                    <th>Warganegara</th>
-                    <th>Pekerjaan</th>
-                    <th>Alamat Penuh</th>
-                    <th>Poskod</th>
-                    <th>Bandar</th>
+                    <th>No. Telefon</th>
                     <th>Negeri</th>
-                    <th>No. Telefon (Bimbit)</th>
-                    <th>E-mel</th>
-                    <th>Pendapatan (RM)</th>
                 </tr>
             </thead>
             <tbody id="tableBody">
-                <tr><td colspan="17" style="text-align:center;">Memuat turun data dari Cloudflare...</td></tr>
+                <tr><td colspan="7" style="text-align:center;">Memuat turun data dari Cloudflare...</td></tr>
             </tbody>
         </table>
     </div>
 </div>
 
+<!-- ==============================================
+     BAHAGIAN MODAL POP-UP (GOOGLE FORMS VIEW) 
+     ============================================== -->
+<div id="viewModal" class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        
+        <div class="form-title-card">
+            <h2>Personal Accident Application</h2>
+            <hr>
+            <div class="req-text">* Indicates required question</div>
+        </div>
+
+        <!-- Ruang untuk kotak jawapan dijana secara automatik -->
+        <div id="modalBody"></div>
+        
+        <div class="modal-footer" id="modalFooter"></div>
+    </div>
+</div>
+
 <script>
+    let globalData = []; // Simpan semua data di sini supaya Pop-Up boleh baca
+
     // Tarik data dari sistem Cloudflare
     fetch('./api/data')
         .then(response => response.json())
         .then(data => {
+            globalData = data; // Simpan ke pembolehubah global
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = ''; 
             
             if(data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="17" style="text-align:center;">Belum ada sebarang rekod permohonan.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Belum ada sebarang rekod permohonan.</td></tr>';
                 return;
             }
 
-            // Proses setiap data yang masuk
-            data.forEach(row => {
+            // Papar jadual ringkas (sebab perincian boleh dilihat di Pop-up)
+            data.forEach((row, index) => {
                 const tarikh = new Date(row.submitted_at).toLocaleString('ms-MY'); 
-
-                // "Buka Laci" raw_data (Tukar JSON kepada objek Javascript)
                 let details = {};
-                try {
-                    details = JSON.parse(row.raw_data);
-                } catch(e) {}
+                try { details = JSON.parse(row.raw_data); } catch(e) {}
 
-                // Susun dan cantumkan data supaya nampak kemas
                 const namaPenuh = (details.title ? details.title + ' ' : '') + (details.cert_holder_name || row.name || '-');
                 const icPenuh = (details.ic_1 && details.ic_2 && details.ic_3) ? `${details.ic_1}-${details.ic_2}-${details.ic_3}` : (details.old_ic || '-');
-                const alamatPenuh = [details.address_1, details.address_2, details.address_3].filter(Boolean).join(', ');
-                const pekerjaan = details.occupation === 'Others (Sila Taip)' ? details.occupation_other : details.occupation;
 
-                // Masukkan ke dalam barisan jadual
                 tbody.innerHTML += `
                     <tr>
+                        <td style="text-align:center;">
+                            <button class="btn-view" onclick="bukaPaparanBorang(${index})">👁️ Lihat</button>
+                        </td>
                         <td>${row.id}</td>
                         <td>${tarikh}</td>
                         <td style="font-weight: bold;">${namaPenuh.toUpperCase()}</td>
                         <td>${icPenuh}</td>
-                        <td>${details.gender || '-'}</td>
-                        <td>${details.marital_status || '-'}</td>
-                        <td>${details.race || '-'}</td>
-                        <td>${details.religion || '-'}</td>
-                        <td>${details.nationality || '-'}</td>
-                        <td>${pekerjaan || '-'}</td>
-                        <td>${alamatPenuh.toUpperCase()}</td>
-                        <td>${details.postcode || '-'}</td>
-                        <td>${details.town ? details.town.toUpperCase() : '-'}</td>
-                        <td>${details.state || '-'}</td>
                         <td>${details.phone_mobile || row.phone || '-'}</td>
-                        <td>${details.email || '-'}</td>
-                        <td>${details.income || '-'}</td>
+                        <td>${details.state || '-'}</td>
                     </tr>
                 `;
             });
         })
         .catch(error => {
-            document.getElementById('tableBody').innerHTML = `<tr><td colspan="17" style="color:red;">Ralat: ${error.message}</td></tr>`;
+            document.getElementById('tableBody').innerHTML = `<tr><td colspan="7" style="color:red;">Ralat: ${error.message}</td></tr>`;
         });
+
+    // ==========================================
+    // FUNGSI UNTUK MEMBUKA POP-UP "GOOGLE FORMS"
+    // ==========================================
+    function bukaPaparanBorang(index) {
+        const row = globalData[index];
+        let d = {};
+        try { d = JSON.parse(row.raw_data); } catch(e) {}
+        
+        const tarikh = new Date(row.submitted_at).toLocaleString('ms-MY');
+        
+        // Cantumkan pembolehubah
+        const namaPenuh = (d.title ? d.title + ' ' : '') + (d.cert_holder_name || row.name || '-');
+        const icPenuh = (d.ic_1 && d.ic_2 && d.ic_3) ? `${d.ic_1}-${d.ic_2}-${d.ic_3}` : (d.old_ic || '-');
+        const alamatPenuh = [d.address_1, d.address_2, d.address_3].filter(Boolean).join(', ');
+        const pekerjaan = d.occupation === 'Others (Sila Taip)' ? d.occupation_other : d.occupation;
+        const fonPenuh = [
+            d.phone_mobile ? `${d.phone_mobile} (Mobile)` : '',
+            d.phone_office ? `${d.phone_office} (Office)` : '',
+            d.phone_home ? `${d.phone_home} (Home)` : ''
+        ].filter(Boolean).join(' / ');
+
+        // Fungsi bantu cipta kad borang
+        function ciptaKad(label, jawapan, req = true) {
+            const bintang = req ? '<span class="answer-req">*</span>' : '';
+            return `
+                <div class="answer-card">
+                    <div class="answer-label">${label} ${bintang}</div>
+                    <div class="answer-text">${jawapan || '-'}</div>
+                </div>
+            `;
+        }
+
+        let html = '';
+        html += ciptaKad('Nama', namaPenuh);
+        html += ciptaKad('Email', d.email, false);
+        html += ciptaKad('Alamat', alamatPenuh + ', ' + (d.postcode || '') + ' ' + (d.town || '') + ', ' + (d.state || ''));
+        html += ciptaKad('No Telefon', fonPenuh);
+        html += ciptaKad('No Kad Pengenalan Baru', icPenuh);
+        if(d.old_ic) html += ciptaKad('No Kad Pengenalan Lama', d.old_ic, false);
+        html += ciptaKad('Jantina / Jenis', d.gender);
+        html += ciptaKad('Status Perkahwinan', d.marital_status);
+        html += ciptaKad('Bangsa', d.race);
+        html += ciptaKad('Agama', d.religion);
+        html += ciptaKad('Warganegara', d.nationality);
+        html += ciptaKad('Pekerjaan / Sifat Perniagaan', pekerjaan);
+        html += ciptaKad('Pendapatan Bulanan (Anggaran)', 'RM ' + (d.income || '-'));
+        if(d.passport) html += ciptaKad('Passport / PRIC', d.passport, false);
+        if(d.oku_card_no) html += ciptaKad('No Kad OKU', d.oku_card_no, false);
+
+        document.getElementById('modalBody').innerHTML = html;
+        document.getElementById('modalFooter').innerHTML = `Submitted ${tarikh}`;
+        
+        // Tunjukkan Pop-Up
+        document.getElementById('viewModal').style.display = 'block';
+    }
+
+    function closeModal(e) {
+        // Tutup jika klik 'X' atau klik kawasan gelap luar borang
+        if (!e || e.target.id === 'viewModal' || e.target.className === 'close-btn') {
+            document.getElementById('viewModal').style.display = 'none';
+        }
+    }
 
     // --- FUNGSI EXPORT EXCEL ---
     function exportExcel() {
-        let table = document.getElementById("dataTable");
-        let wb = XLSX.utils.table_to_book(table, {sheet: "Data Permohonan"});
+        // Kita bina jadual Excel secara manual dari globalData supaya semua info lengkap!
+        if(globalData.length === 0) return alert("Tiada data untuk diexport!");
+        
+        let excelData = globalData.map(row => {
+            let d = {}; try { d = JSON.parse(row.raw_data); } catch(e) {}
+            return {
+                "ID": row.id,
+                "Tarikh": new Date(row.submitted_at).toLocaleString('ms-MY'),
+                "Nama": (d.title || '') + ' ' + (d.cert_holder_name || ''),
+                "IC Baru": (d.ic_1 && d.ic_2 && d.ic_3) ? `${d.ic_1}-${d.ic_2}-${d.ic_3}` : '',
+                "IC Lama": d.old_ic || '',
+                "Jantina": d.gender || '',
+                "Status Kahwin": d.marital_status || '',
+                "Bangsa": d.race || '',
+                "Agama": d.religion || '',
+                "Warganegara": d.nationality || '',
+                "Pekerjaan": d.occupation === 'Others (Sila Taip)' ? d.occupation_other : d.occupation,
+                "Pendapatan": d.income || '',
+                "Alamat": [d.address_1, d.address_2, d.address_3].filter(Boolean).join(', '),
+                "Poskod": d.postcode || '',
+                "Bandar": d.town || '',
+                "Negeri": d.state || '',
+                "No Telefon (Bimbit)": d.phone_mobile || '',
+                "No Telefon (Rumah/Pejabat)": [d.phone_home, d.phone_office].filter(Boolean).join(' / '),
+                "Email": d.email || ''
+            };
+        });
+
+        let ws = XLSX.utils.json_to_sheet(excelData);
+        let wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Data Permohonan");
         XLSX.writeFile(wb, "Senarai_Permohonan_Lengkap.xlsx");
     }
 
@@ -138,12 +271,11 @@
     function exportPDF() {
         let element = document.getElementById("table-container");
         let opt = {
-            margin:       0.2,
-            filename:     'Senarai_Permohonan_Lengkap.pdf',
+            margin:       0.5,
+            filename:     'Senarai_Permohonan.pdf',
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2 },
-            // Gunakan saiz kertas A3 (Melintang) sebab lajur sangat panjang
-            jsPDF:        { unit: 'in', format: 'a3', orientation: 'landscape' } 
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
         };
         html2pdf().set(opt).from(element).save();
     }
