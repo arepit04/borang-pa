@@ -12,3 +12,7 @@
     "nodejs_compat"
   ]
 }
+[[d1_databases]]
+binding = "DB"
+database_name = "cert_db"
+database_id = "42d5686a-4ffc-4831-8f90-e3487a8e5bcc"
