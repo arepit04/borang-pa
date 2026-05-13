@@ -417,17 +417,11 @@
 
                 if (response.ok) {
                     alert("Berjaya! Data telah direkodkan.");
-                    form.reset(); // Kosongkan borang
+                    form.reset(); 
                 } else {
-                    alert("Ralat: Tidak dapat menghubungi server.");
+                    const isiRalat = await response.text();
+                    alert("RALAT SEBENAR: " + isiRalat);
                 }
-            } catch (error) {
-                alert("Ralat sambungan atau fungsi backend belum disediakan.");
-            } finally {
-                // Kembalikan butang kepada asal
-                submitBtn.textContent = 'Submit Data';
-                submitBtn.disabled = false;
-            }
         });
 
     });
