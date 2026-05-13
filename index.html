@@ -408,8 +408,8 @@
             const data = Object.fromEntries(formData.entries());
 
             try {
-                // Menghantar ke fail submit.js (yang kita akan buat di langkah seterusnya)
-                const response = await fetch('/api/submit', {
+                // Menghantar ke fail submit.js
+                const response = await fetch('./api/submit', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
@@ -418,10 +418,20 @@
                 if (response.ok) {
                     alert("Berjaya! Data telah direkodkan.");
                     form.reset(); 
+                    submitBtn.textContent = 'Submit Data';
+                    submitBtn.disabled = false;
                 } else {
                     const isiRalat = await response.text();
                     alert("RALAT SEBENAR: " + isiRalat);
+                    submitBtn.textContent = 'Submit Data';
+                    submitBtn.disabled = false;
                 }
+            } catch (error) {
+                // PENTING: Tangkap ralat jika gagal berhubung dengan server
+                alert("RALAT SEBENAR (SISTEM): " + error.message);
+                submitBtn.textContent = 'Submit Data';
+                submitBtn.disabled = false;
+            }
         });
 
     });
