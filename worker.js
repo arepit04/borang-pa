@@ -2,7 +2,9 @@ export default {
     async fetch(request, env) {
         const url = new URL(request.url);
 
-        // 1. TUGAS A: Terima data dari borang (POST)
+        // =========================================================
+        // TUGAS A: Terima data dari borang (POST) - AWAM (Tanpa Kunci)
+        // =========================================================
         if (request.method === "POST" && url.pathname.includes("/api/submit")) {
             try {
                 if (!env.DB) return new Response("RALAT KOD: Database D1 tidak bersambung.", { status: 500 });
@@ -21,12 +23,35 @@ export default {
             }
         }
 
-        // 2. TUGAS B: Berikan data kepada Admin Page (GET)
+        // =========================================================
+        // KAWALAN KESELAMATAN (LOGIN) UNTUK ADMIN PAGE & DATA API
+        // =========================================================
+        if (url.pathname.includes("/admin.html") || url.pathname.includes("/api/data")) {
+            
+            // 💡 SILA TUKAR USERNAME DAN PASSWORD ANDA DI SINI:
+            const USERNAME = "admin";
+            const PASSWORD = "PasswordRahsia123!"; 
+
+            const authHeader = request.headers.get("Authorization");
+            const expectedAuth = "Basic " + btoa(`${USERNAME}:${PASSWORD}`);
+
+            // Jika tiada password atau salah, halau mereka!
+            if (!authHeader || authHeader !== expectedAuth) {
+                return new Response("Akses Ditolak. Anda tidak dibenarkan masuk.", {
+                    status: 401,
+                    headers: {
+                        "WWW-Authenticate": 'Basic realm="Sila Masukkan Username dan Password"'
+                    }
+                });
+            }
+        }
+
+        // =========================================================
+        // TUGAS B: Berikan data kepada Admin Page (GET) - DILINDUNGI KUNCI
+        // =========================================================
         if (request.method === "GET" && url.pathname.includes("/api/data")) {
             try {
-                // Ambil semua data dan susun yang paling baru di atas (DESC)
                 const { results } = await env.DB.prepare("SELECT * FROM form_submissions ORDER BY submitted_at DESC").all();
-                
                 return new Response(JSON.stringify(results), {
                     headers: { "Content-Type": "application/json" }
                 });
@@ -35,7 +60,9 @@ export default {
             }
         }
 
-        // 3. TUGAS C: Papar Laman Web (index.html atau admin.html)
+        // =========================================================
+        // TUGAS C: Papar Laman Web (index.html atau admin.html)
+        // =========================================================
         return await env.ASSETS.fetch(request);
     }
 }
