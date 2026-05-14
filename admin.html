@@ -202,10 +202,10 @@
 
         let html = '';
         html += ciptaKad('Nama', namaPenuh);
+        html += ciptaKad('No Kad Pengenalan Baru', icPenuh);
         html += ciptaKad('Email', d.email, false);
         html += ciptaKad('Alamat', alamatPenuh + ', ' + (d.postcode || '') + ' ' + (d.town || '') + ', ' + (d.state || ''));
         html += ciptaKad('No Telefon', fonPenuh);
-        html += ciptaKad('No Kad Pengenalan Baru', icPenuh);
         if(d.old_ic) html += ciptaKad('No Kad Pengenalan Lama', d.old_ic, false);
         html += ciptaKad('Jantina / Jenis', d.gender);
         html += ciptaKad('Status Perkahwinan', d.marital_status);
